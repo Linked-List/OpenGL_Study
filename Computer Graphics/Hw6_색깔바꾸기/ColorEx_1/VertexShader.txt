@@ -1,0 +1,7 @@
+in vec4 vertex;
+
+void main()
+{
+	gl_Position = vertex;
+	gl_PointSize = 5.0;
+}

@@ -1,0 +1,7 @@
+in vec3 vtxPosition;
+
+void main()
+{
+	gl_Position = vec4(vtxPosition, 1.0);
+	gl_PointSize = 10.0;
+}

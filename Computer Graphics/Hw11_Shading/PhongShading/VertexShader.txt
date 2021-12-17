@@ -1,0 +1,10 @@
+in vec3 inPos;
+varying vec3 outPos;
+
+void main()
+{
+	vec4 vPos = vec4(inPos,1.0);
+	outPos = vPos.xyz;
+
+	gl_Position = vPos;
+}

@@ -1,0 +1,74 @@
+#version 400 core
+
+#extension GL_ARB_tessellation_shader: enable
+
+layout(isolines, equal_spacing) in;
+
+in vec3 tc2teColor[];
+out vec3 te2fColor;
+
+uniform float u0;
+uniform float u1;
+uniform float u2;
+uniform float u3;
+
+void main()
+{
+	float u4 = 2*u3 - u2;
+	float u[5] = float[](u0,u1,u2,u3,u4);
+
+	float nu = gl_TessCoord.x*(u4-u3) + u3; // Change Range
+
+	vec4 pu = vec4(0,0,0,0);
+	for(int i=0;i<4;i++){ // Sigma
+		float B=0; // Bk,d
+		for(int j=0;j<8;j++){ // Compute Bk,4
+			int k=i;
+			int d=4;
+			float temp;
+
+			if(j/4%2!=0)
+				k = k+1;
+			if(j/2%2!=0)
+				k = k+1;
+			if(j%2!=0)
+				k = k+1;
+			if(k!=3)
+				continue;
+
+			k=i; // Reset k
+				
+			if(j/4%2==0){ // Left
+				temp = (nu-u[k])/(u[k+d-1]-u[k]);
+				d = d - 1;
+			}else{ // Right
+				temp = (u[k+d]-nu)/(u[k+d]-u[k+1]);
+				k = k+1;
+				d = d-1;
+			}
+
+			if(j/2%2==0){ // Left
+				temp *= (nu-u[k])/(u[k+d-1]-u[k]);
+				d = d - 1;
+			}else{ // Right
+				temp *= (u[k+d]-nu)/(u[k+d]-u[k+1]);
+				k = k+1;
+				d = d-1;
+			}
+
+			if(j%2==0){ // Left
+				temp *= (nu-u[k])/(u[k+d-1]-u[k]);
+				d = d - 1;
+			}else{ // Right
+				temp *= (u[k+d]-nu)/(u[k+d]-u[k+1]);
+				k = k+1;
+				d = d-1;
+			}
+			B += temp;
+		}
+		pu = pu + gl_in[i].gl_Position*B;
+	}
+
+	te2fColor = vec3(1.0,1.0,0.0);
+	gl_Position = vec4(pu.xyz,1.0);
+}

@@ -1,0 +1,39 @@
+#version 400 core
+
+#extension GL_ARB_tessellation_shader: enable
+
+layout(quads, equal_spacing) in;
+
+in vec3 tc2teColor[];
+out vec3 te2fColor;
+
+void main()
+{
+	mat4 p;
+
+	for(int i=0;i<4;i++){
+		vec4 q0 = gl_in[i].gl_Position;
+		vec4 q1 = gl_in[4+i].gl_Position;
+		vec4 q2 = gl_in[8+i].gl_Position;
+		vec4 q3 = gl_in[12+i].gl_Position;
+
+		float v = gl_TessCoord.y;
+
+		float b0 = (1.-v) * (1.-v) * (1.-v);
+		float b1 = 3.*v*(1.-v)*(1.-v);
+		float b2 = 3.*v*v*(1.-v);
+		float b3 = v*v*v;
+		
+		p[i] = b0 * q0 + b1 * q1 + b2 * q2 + b3 * q3;
+	}
+
+	float u = gl_TessCoord.x;
+
+	vec4 Ti = vec4(u*u*u, u*u, u, 1);
+	mat4 MB = mat4(-1.,3.,-3.,1., 3.,-6.,0,4., -3.,3.,3.,1., 1.,0,0,0)/6.;
+	MB =transpose(MB);
+	p = transpose(p);
+
+	gl_Position = Ti*MB*p;
+	te2fColor = tc2teColor[0];
+}

@@ -1,0 +1,24 @@
+uniform vec3 inColor;
+varying vec3 outColor;
+
+uniform mat4 worldMat;
+uniform mat4 projMat;
+uniform mat4 viewMat;
+
+uniform vec3 uLightPos;
+in vec3 inNormal;
+
+in vec3 inPos;
+
+void main()
+{
+	vec4 vPos = vec4(inPos,1.0);
+	vPos = worldMat*vPos;
+
+	vec3 lightDir = normalize(uLightPos - vPos.xyz);
+	vec4 transNorm = worldMat*vec4(inNormal,0.0);
+	vec3 tNorm = normalize(transNorm.xyz);
+
+	outColor = dot(lightDir, tNorm.xyz)*inColor;
+	gl_Position = projMat*viewMat*vPos;
+}

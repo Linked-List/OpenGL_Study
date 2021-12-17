@@ -1,0 +1,9 @@
+in vec4 vertex;
+in vec4 in_color;
+varying vec4 out_color;
+
+void main()
+{
+	gl_Position = vertex;
+	out_color = in_color;
+}

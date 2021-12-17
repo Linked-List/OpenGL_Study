@@ -1,0 +1,12 @@
+uniform vec3 uLightPos;
+uniform vec3 inColor;
+
+in vec3 outPos;
+
+void main()
+{
+	vec3 vPos = vec3(gl_FragCoord.x/240.0-1.0, gl_FragCoord.y/240.0-1.0, outPos.z);
+	vec3 lightDir = normalize(uLightPos - vPos);
+	vec3 tNorm = normalize(vPos);
+	gl_FragColor = vec4(dot(lightDir, tNorm)*inColor,1.0);
+}

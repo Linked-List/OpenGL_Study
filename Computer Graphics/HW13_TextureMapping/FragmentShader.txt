@@ -1,0 +1,19 @@
+#version 330 core
+
+in vec4 outColor;
+out vec4 color;
+
+uniform sampler2D myTex;
+uniform sampler2D myTex2;
+in vec2 texCoord;
+
+uniform int isTex;
+
+void main()
+{
+	if(isTex == 1){
+		color = texture(myTex,texCoord)*texture(myTex2,texCoord);
+	}else{
+		color = outColor;
+	}
+}

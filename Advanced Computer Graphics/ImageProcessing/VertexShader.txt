@@ -1,0 +1,12 @@
+#version 400 core
+
+in vec3 position;
+in vec2 texCoord;
+
+out vec2 v2ftexCoord;
+
+void main()
+{
+	v2ftexCoord = texCoord;
+	gl_Position = vec4(position,1.0);
+}

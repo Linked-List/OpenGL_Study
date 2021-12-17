@@ -1,0 +1,100 @@
+#version 400 core
+
+in vec3 position; // Box Position
+in vec3 color;
+in vec3 direction; // Box Default direction
+in float u;
+
+out vec3 v2fColor;
+
+uniform vec3 p0;
+uniform vec3 p1;
+uniform vec3 p2;
+uniform vec3 p3;
+uniform vec3 p4;
+
+uniform int mode;
+
+float calculateAngle(vec3 v1, vec3 v2){
+	float temp = dot(v1,v2);
+	return acos(temp/(length(v1)*length(v2)));
+}
+
+vec4 quat_mult(vec4 q1, vec4 q2)
+{ 
+  vec4 qr;
+  qr.w = (q1.w * q2.w) - dot(q1.xyz,q2.xyz);
+  qr.xyz = q2.w*q1.xyz+q1.w*q2.xyz+cross(q1.xyz,q2.xyz);
+  return qr;
+}
+
+vec3 lookAtVector(vec3 self, vec3 toLook){
+		vec3 rotAxis = normalize(cross(self,toLook));
+		float angle = calculateAngle(self,toLook);
+		vec4 q = vec4(sin(angle/2)*rotAxis,cos(angle/2));
+		vec4 qin = vec4(-1*q.xyz,q.w);
+
+		vec4 temp = quat_mult(q, vec4(position,0.0));
+		temp = quat_mult(temp,qin);
+
+		return temp.xyz;
+}
+
+
+void main()
+{
+	if(mode == 0){ // Bezier Mode
+		
+		// 1. De Casteljau's algorithm
+		vec3 p[] = vec3[5](p0,p1,p2,p3,p4);
+		for (int i = 4; i > 0; i--) { // No of Control Points - 1
+			for (int j = 0; j < i; j++) {
+				p[j] = (1 - u) * p[j] + u * p[j + 1];
+			}
+		}
+		// p[0] is the Actual Result Point
+
+		// 2. Calculate Angle to Look at + Rotation
+		vec3 tanVector = p[1] - p[0]; // Last Part of de casteljau's algorithm is Tangent Vector
+		vec3 newPos = lookAtVector(direction, tanVector);
+
+		// 3. Translatation Matrix
+		mat4 trans = mat4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, p[0].x, p[0].y, p[0].z, 1.0);
+	
+		gl_Position = trans*vec4(newPos,1.0);
+
+	}else{ // Linear Interpolation Mode
+
+		vec3 p[] = vec3[5](p0,p1,p2,p3,p4);
+		float totalLength=0.0;
+		for(int i=0;i<4;i++){
+			totalLength += length(p[i+1]-p[i]);
+		}
+
+		for(int i=0;i<4;i++){
+			float beginLength=0.0;
+			float endLength=0.0;
+			for(int j=0;j<i+1;j++){
+				if(j<i){
+					beginLength += length(p[j+1]-p[j]);
+				}
+				endLength += length(p[j+1]-p[j]);
+			}
+			if(u>=beginLength/totalLength && u<endLength/totalLength){
+				// Interpolation Step
+				float newU = (u*totalLength-beginLength)/(endLength-beginLength);
+				vec3 temp = (1-newU)*p[i]+newU*p[i+1];
+
+				vec3 tanVector = p[i+1]-p[i];
+				vec3 newPos = lookAtVector(direction, tanVector);
+
+				mat4 trans = mat4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, temp.x, temp.y, temp.z, 1.0);
+				gl_Position = trans*vec4(newPos,1.0);
+
+				break;
+			}
+		}
+	}
+
+	v2fColor = color;
+}
